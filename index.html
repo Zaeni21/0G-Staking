@@ -270,9 +270,9 @@ async function updateUI() {
   balance = parseFloat(ethers.utils.formatEther(rawBal));
   totalStaked = parseFloat(ethers.utils.formatEther(staked));
 
-  document.getElementById("walletBalance").textContent = `Balance: ${balance.toFixed(2)} NEX`;
-  document.getElementById("totalStaked").textContent = totalStaked.toFixed(2) + " NEX";
-  document.getElementById("pendingRewards").textContent = parseFloat(ethers.utils.formatEther(reward)).toFixed(2) + " NEX";
+  document.getElementById("walletBalance").textContent = `Balance: ${balance.toFixed(2)} 0G`;
+  document.getElementById("totalStaked").textContent = totalStaked.toFixed(2) + " 0G";
+  document.getElementById("pendingRewards").textContent = parseFloat(ethers.utils.formatEther(reward)).toFixed(2) + " 0G";
 	const apy = await contract.apy();
 document.getElementById("apyValue").textContent = apy.toString();
 
@@ -303,14 +303,14 @@ document.getElementById("poolBalance").textContent =
 
     const rawBal = await provider.getBalance(walletAddress);
     balance = parseFloat(ethers.utils.formatEther(rawBal));
-    document.getElementById("walletBalance").textContent = `Balance: ${balance.toFixed(2)} NEX`;
+    document.getElementById("walletBalance").textContent = `Balance: ${balance.toFixed(2)} 0G`;
 
     const staked = await contract.getStakedAmount(walletAddress);
     const reward = await contract.pendingReward(walletAddress);
     totalStaked = parseFloat(ethers.utils.formatEther(staked));
 
-    document.getElementById("totalStaked").textContent = totalStaked.toFixed(2) + " NEX";
-    document.getElementById("pendingRewards").textContent = parseFloat(ethers.utils.formatEther(reward)).toFixed(2) + " NEX";
+    document.getElementById("totalStaked").textContent = totalStaked.toFixed(2) + " 0G";
+    document.getElementById("pendingRewards").textContent = parseFloat(ethers.utils.formatEther(reward)).toFixed(2) + " 0G";
 
     setMode(mode);
   }
@@ -438,7 +438,7 @@ async function depositRewards() {
   if (walletAddress && contract) {
     try {
       const reward = await contract.pendingReward(walletAddress);
-      document.getElementById("pendingRewards").textContent = parseFloat(ethers.utils.formatEther(reward)).toFixed(4) + " NEX";
+      document.getElementById("pendingRewards").textContent = parseFloat(ethers.utils.formatEther(reward)).toFixed(4) + " 0G";
     } catch (err) {
       console.error("Failed to update reward:", err);
     }

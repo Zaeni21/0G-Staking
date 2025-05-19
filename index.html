@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Stake JWR</title>
+  <title>Stake 0G</title>
   <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans">
   <div class="max-w-md mx-auto p-6">
-    <h1 class="text-3xl font-bold mb-6">Stake JWR</h1>
+    <h1 class="text-3xl font-bold mb-6">Stake 0G</h1>
 
     <div class="bg-white shadow rounded-lg p-4 mb-6">
       <div class="flex justify-between items-center text-sm">
@@ -25,17 +25,17 @@
         </div>
       </div>
       <p id="walletBalance" class="text-sm text-gray-500 mt-1">Balance: -</p>
-      <div class="text-center text-sm text-gray-500 mb-2">
-        APY: <span id="apyValue">-</span>% &bull; Pool: <span id="poolBalance">-</span> JWR
-      </div>
+<div class="text-center text-sm text-gray-500 mb-2">
+  APY: <span id="apyValue">-</span>% &bull; Pool: <span id="poolBalance">-</span> 0G
+</div>
       <div class="grid grid-cols-2 gap-4 text-center mt-4">
         <div>
           <p class="text-gray-500">Total Staked</p>
-          <p id="totalStaked" class="text-lg font-semibold">-</p>
+          <p id="totalStaked" class="text-lg font-semibold">0.00 0G</p>
         </div>
         <div>
           <p class="text-gray-500">Pending Rewards</p>
-          <p id="pendingRewards" class="text-lg font-semibold">0.00 JWR</p>
+          <p id="pendingRewards" class="text-lg font-semibold">0.00 0G</p>
         </div>
       </div>
     </div>
@@ -52,374 +52,99 @@
       </div>
       <button onclick="confirmAction()" class="w-full bg-blue-600 text-white py-2 rounded">Confirm</button>
       <!-- Tombol yang bisa dilipat -->
-      <div id="actionButtons" class="grid grid-cols-2 gap-4 mt-4 transition-all duration-300 origin-top">
-        <button onclick="claimRewards()" class="bg-gray-200 text-gray-800 text-sm py-1.5 rounded">Claim</button>
-        <button onclick="depositRewards()" class="bg-gray-200 text-gray-800 text-sm py-1.5 rounded">Deposit</button>
-      </div>
-      <!-- Tombol Toggle -->
-      <div class="text-center mt-2">
-        <button onclick="toggleActions()" class="text-sm text-gray-500 hover:text-black">
-          Toggle Actions
-        </button>
-      </div>
-    </div>
+<div id="actionButtons" class="grid grid-cols-2 gap-4 mt-4 transition-all duration-300 origin-top">
+  <button onclick="claimRewards()" class="bg-gray-200 text-gray-800 text-sm py-1.5 rounded">Claim</button>
+  <button onclick="depositRewards()" class="bg-gray-200 text-gray-800 text-sm py-1.5 rounded">Deposit</button>
+</div>
+	    <!-- Tombol Toggle -->
+<div class="text-center mt-2">
+  <button onclick="toggleActions()" class="text-sm text-gray-500 hover:text-black">
+    Toggle Actions
+  </button>
+</div>
+     </div>
 
     <p class="text-center text-xs text-gray-400 mt-6">Built by JAWIRNFT with love for degen culture</p>
   </div>
+<script>
+  let provider, signer, walletAddress, contract;
+  let balance = 0, totalStaked = 0;
+  let mode = "stake";
 
-  <!-- Floating Faucet Button -->
-  <button onclick="getFaucet()" class="fixed bottom-5 right-5 bg-blue-600 text-white text-xs px-3 py-2 rounded shadow-lg hover:bg-blue-700 z-50">
-    Faucet JWR
-  </button>
-
-  <div id="txHashMsg" class="fixed bottom-16 right-4 bg-white shadow-md text-blue-600 text-xs px-3 py-2 rounded hidden z-50">
-    <a id="txLink" href="#" target="_blank">View Transaction</a>
-  </div>
-
-  <script>
-let provider, signer, walletAddress, multiContract, tokenContract;
-let balance = 0, totalStaked = 0, mode = "stake";
-
-const multiStakingAddress = "0x3E28B27B8faA9BfffbAE49A19fcdBe43e3D3cd39"; // Ganti jika perlu
-const multiStakingAbi = [
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "account",
-				"type": "address"
-			}
-		],
-		"name": "balanceOf",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "transfer",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "transferFrom",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	}
-];
-const erc20Address = "0x4e54b5aeb805d826a6c1ad8abc9cbf05e49457c3";
-const erc20Abi = [
+  const contractAddress = "0x9fe68976062c3973b9e0e25316335c34ced14877"; // Nexus
+  const abi = [
 	{
 		"inputs": [],
-		"stateMutability": "nonpayable",
-		"type": "constructor"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "owner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "Approval",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "user",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "FaucetClaimed",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "previousOwner",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
-			}
-		],
-		"name": "OwnershipTransferred",
-		"type": "event"
-	},
-	{
-		"anonymous": false,
-		"inputs": [
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"indexed": true,
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
-			},
-			{
-				"indexed": false,
-				"internalType": "uint256",
-				"name": "value",
-				"type": "uint256"
-			}
-		],
-		"name": "Transfer",
-		"type": "event"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "allowance",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "amount",
-				"type": "uint256"
-			}
-		],
-		"name": "approve",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
-			}
-		],
-		"name": "balanceOf",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "decimals",
-		"outputs": [
-			{
-				"internalType": "uint8",
-				"name": "",
-				"type": "uint8"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			},
-			{
-				"internalType": "uint256",
-				"name": "subtractedValue",
-				"type": "uint256"
-			}
-		],
-		"name": "decreaseAllowance",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "faucet",
+		"name": "claimReward",
 		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
 		"inputs": [],
-		"name": "faucetAmount",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "faucetCooldown",
-		"outputs": [
-			{
-				"internalType": "uint256",
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"stateMutability": "view",
+		"name": "depositReward",
+		"outputs": [],
+		"stateMutability": "payable",
 		"type": "function"
 	},
 	{
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "spender",
-				"type": "address"
-			},
-			{
 				"internalType": "uint256",
-				"name": "addedValue",
+				"name": "_apy",
 				"type": "uint256"
 			}
 		],
-		"name": "increaseAllowance",
-		"outputs": [
+		"name": "setAPY",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "stake",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"inputs": [
 			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
 			}
 		],
+		"name": "unstake",
+		"outputs": [],
 		"stateMutability": "nonpayable",
 		"type": "function"
 	},
 	{
 		"inputs": [
 			{
-				"internalType": "address",
-				"name": "",
-				"type": "address"
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
 			}
 		],
-		"name": "lastFaucetTime",
+		"name": "withdraw",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
+	},
+	{
+		"inputs": [],
+		"name": "apy",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -431,13 +156,19 @@ const erc20Abi = [
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "name",
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			}
+		],
+		"name": "getStakedAmount",
 		"outputs": [
 			{
-				"internalType": "string",
+				"internalType": "uint256",
 				"name": "",
-				"type": "string"
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -457,46 +188,19 @@ const erc20Abi = [
 		"type": "function"
 	},
 	{
-		"inputs": [],
-		"name": "renounceOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
 		"inputs": [
 			{
-				"internalType": "uint256",
-				"name": "_amount",
-				"type": "uint256"
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
 			}
 		],
-		"name": "setFaucetAmount",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "uint256",
-				"name": "_cooldown",
-				"type": "uint256"
-			}
-		],
-		"name": "setFaucetCooldown",
-		"outputs": [],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "symbol",
+		"name": "pendingReward",
 		"outputs": [
 			{
-				"internalType": "string",
+				"internalType": "uint256",
 				"name": "",
-				"type": "string"
+				"type": "uint256"
 			}
 		],
 		"stateMutability": "view",
@@ -504,7 +208,7 @@ const erc20Abi = [
 	},
 	{
 		"inputs": [],
-		"name": "totalSupply",
+		"name": "rewardInterval",
 		"outputs": [
 			{
 				"internalType": "uint256",
@@ -519,241 +223,249 @@ const erc20Abi = [
 		"inputs": [
 			{
 				"internalType": "address",
-				"name": "to",
+				"name": "",
 				"type": "address"
-			},
+			}
+		],
+		"name": "stakers",
+		"outputs": [
 			{
 				"internalType": "uint256",
 				"name": "amount",
 				"type": "uint256"
-			}
-		],
-		"name": "transfer",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "from",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "to",
-				"type": "address"
 			},
 			{
 				"internalType": "uint256",
-				"name": "amount",
+				"name": "rewardDebt",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "lastStaked",
 				"type": "uint256"
 			}
 		],
-		"name": "transferFrom",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	},
 	{
-		"inputs": [
+		"inputs": [],
+		"name": "totalStaked",
+		"outputs": [
 			{
-				"internalType": "address",
-				"name": "newOwner",
-				"type": "address"
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
 			}
 		],
-		"name": "transferOwnership",
-		"outputs": [],
-		"stateMutability": "nonpayable",
+		"stateMutability": "view",
 		"type": "function"
 	}
-];
+]
+async function updateUI() {
+  const staked = await contract.getStakedAmount(walletAddress);
+  const reward = await contract.pendingReward(walletAddress);
+  const rawBal = await provider.getBalance(walletAddress);
+  
+  balance = parseFloat(ethers.utils.formatEther(rawBal));
+  totalStaked = parseFloat(ethers.utils.formatEther(staked));
 
-async function connectWallet() {
-  if (!window.ethereum) return alert("Please install MetaMask or OKX Wallet");
-  provider = new ethers.providers.Web3Provider(window.ethereum);
-  await provider.send("wallet_addEthereumChain", [{
-    chainId: '0x40d9',
-    chainName: '0G-Galileo-Testnet',
-    rpcUrls: ['https://evmrpc-testnet.0g.ai'],
-    nativeCurrency: { name: 'OG Token', symbol: 'OG', decimals: 18 },
-    blockExplorerUrls: ['https://chainscan-galileo.0g.ai/']
-  }]);
-  await provider.send("eth_requestAccounts", []);
-  signer = provider.getSigner();
-  walletAddress = await signer.getAddress();
-  multiContract = new ethers.Contract(multiStakingAddress, multiStakingAbi, signer);
-  tokenContract = new ethers.Contract(erc20Address, erc20Abi, signer);
+  document.getElementById("walletBalance").textContent = `Balance: ${balance.toFixed(2)} 0G`;
+  document.getElementById("totalStaked").textContent = totalStaked.toFixed(2) + " 0G";
+  document.getElementById("pendingRewards").textContent = parseFloat(ethers.utils.formatEther(reward)).toFixed(2) + " 0G";
+	const apy = await contract.apy();
+document.getElementById("apyValue").textContent = apy.toString();
 
-  document.getElementById("walletAddress").textContent = walletAddress.slice(0, 6) + "..." + walletAddress.slice(-4);
-  document.getElementById("connectBtn").classList.add("hidden");
-  document.getElementById("disconnectBtn").classList.remove("hidden");
-  updateUI();
+const contractBalance = await provider.getBalance(contractAddress);
+document.getElementById("poolBalance").textContent =
+  parseFloat(ethers.utils.formatEther(contractBalance)).toFixed(2);
 }
+  async function connectWallet() {
+    if (!window.ethereum) return alert("Please install MetaMask or OKX Wallet");
+    provider = new ethers.providers.Web3Provider(window.ethereum);
 
-function disconnectWallet() {
-  provider = null;
-  signer = null;
-  walletAddress = null;
-  document.getElementById("walletAddress").textContent = "-";
-  document.getElementById("walletBalance").textContent = "Balance: -";
-  document.getElementById("connectBtn").classList.remove("hidden");
-  document.getElementById("disconnectBtn").classList.add("hidden");
-}
+    await provider.send("wallet_addEthereumChain", [{
+      chainId: '0x40d9',
+      chainName: '0G-Galileo-Testnet',
+      rpcUrls: ['https://evmrpc-testnet.0g.ai'],
+      nativeCurrency: { name: 'OG Token', symbol: 'OG', decimals: 18 },
+      blockExplorerUrls: ['https://chainscan-galileo.0g.ai/']
+    }]);
 
-function setMode(selected) {
-  mode = selected;
-  document.getElementById('stakeBtn').className = selected === 'stake' ? "bg-gray-900 text-white py-2 rounded" : "bg-gray-200 text-gray-800 py-2 rounded";
-  document.getElementById('unstakeBtn').className = selected === 'unstake' ? "bg-gray-900 text-white py-2 rounded" : "bg-gray-200 text-gray-800 py-2 rounded";
-}
+    await provider.send("eth_requestAccounts", []);
+    signer = provider.getSigner();
+    walletAddress = await signer.getAddress();
+    contract = new ethers.Contract(contractAddress, abi, signer);
 
-async function confirmAction() {
-  const amount = parseFloat(document.getElementById("amount").value);
-  if (!walletAddress) return alert("Connect wallet.");
-  if (!amount || amount <= 0) return alert("Enter valid amount.");
-  const value = ethers.utils.parseEther(amount.toString());
+    document.getElementById("walletAddress").textContent = walletAddress.slice(0, 6) + "..." + walletAddress.slice(-4);
+    document.getElementById("connectBtn").classList.add("hidden");
+    document.getElementById("disconnectBtn").classList.remove("hidden");
 
-  const allowance = await tokenContract.allowance(walletAddress, multiStakingAddress);
-  if (allowance.lt(value)) {
-    const approveTx = await tokenContract.approve(multiStakingAddress, value);
-    await approveTx.wait();
+    const rawBal = await provider.getBalance(walletAddress);
+    balance = parseFloat(ethers.utils.formatEther(rawBal));
+    document.getElementById("walletBalance").textContent = `Balance: ${balance.toFixed(2)} 0G`;
+
+    const staked = await contract.getStakedAmount(walletAddress);
+    const reward = await contract.pendingReward(walletAddress);
+    totalStaked = parseFloat(ethers.utils.formatEther(staked));
+
+    document.getElementById("totalStaked").textContent = totalStaked.toFixed(2) + " 0G";
+    document.getElementById("pendingRewards").textContent = parseFloat(ethers.utils.formatEther(reward)).toFixed(2) + " 0G";
+
+    setMode(mode);
   }
 
-  let tx;
-  if (mode === "stake") {
-    tx = await multiContract.stake(erc20Address, value);
-  } else {
-    tx = await multiContract.unstake(erc20Address, value);
+  function disconnectWallet() {
+    provider = null;
+    signer = null;
+    walletAddress = null;
+    balance = 0;
+
+    document.getElementById("walletAddress").textContent = "-";
+    document.getElementById("walletBalance").textContent = "Balance: -";
+    document.getElementById("connectBtn").classList.remove("hidden");
+    document.getElementById("disconnectBtn").classList.add("hidden");
+
+    document.getElementById("amount").style.display = "none";
+    document.getElementById("slider").style.display = "none";
+    document.getElementById("percentageText").style.display = "none";
   }
 
-  const receipt = await tx.wait();
-  showTx(receipt.transactionHash);
-  updateUI();
-}
+  function setMode(selected) {
+    mode = selected;
+    document.getElementById('stakeBtn').className =
+      selected === 'stake' ? "bg-gray-900 text-white py-2 rounded" : "bg-gray-200 text-gray-800 py-2 rounded";
+    document.getElementById('unstakeBtn').className =
+      selected === 'unstake' ? "bg-gray-900 text-white py-2 rounded" : "bg-gray-200 text-gray-800 py-2 rounded";
 
-async function claimRewards() {
-  try {
-    const tx = await multiContract.claimReward(erc20Address);
+    const showForm = (mode === 'stake') || (mode === 'unstake' && totalStaked > 0);
+    document.getElementById("amount").style.display = showForm ? "block" : "none";
+    document.getElementById("slider").style.display = showForm ? "block" : "none";
+    document.getElementById("percentageText").style.display = showForm ? "block" : "none";
+
+    if (mode === 'unstake') {
+      document.getElementById("amount").value = totalStaked.toFixed(2);
+    }
+  }
+
+  async function confirmAction() {
+    const amount = parseFloat(document.getElementById("amount").value);
+    if (!walletAddress) return alert("Please connect wallet.");
+    if (!amount || amount <= 0) return alert("Enter valid amount.");
+
+    const value = ethers.utils.parseEther(amount.toString());
+    const tx = mode === "stake"
+      ? await contract.stake({ value })
+      : await contract.unstake(value);
+
     const receipt = await tx.wait();
-    showTx(receipt.transactionHash);
-    updateUI();
-  } catch (e) {
-    alert("Claim error: " + e.message);
-  }
-}
 
-async function getFaucet() {
+const txBox = document.getElementById("txHashMsg");
+const txLink = document.getElementById("txLink");
+txLink.href = `https://chainscan-galileo.0g.ai/tx/${receipt.transactionHash}`;
+txBox.classList.remove("hidden");
+setTimeout(() => { txBox.classList.add("hidden"); }, 10000);
+
+updateUI();
+  }
+
+  window.onload = () => {
+    document.getElementById("connectBtn").addEventListener("click", connectWallet);
+  };
+  const slider = document.getElementById("slider");
+const amountInput = document.getElementById("amount");
+const percentageText = document.getElementById("percentageText");
+
+slider.addEventListener("input", () => {
+  const base = mode === "stake" ? balance : totalStaked;
+  const val = (parseFloat(slider.value) / 100) * base;
+  amountInput.value = val.toFixed(2);
+  percentageText.textContent = `${slider.value}%`;
+});
+
+amountInput.addEventListener("input", () => {
+  const base = mode === "stake" ? balance : totalStaked;
+  const val = Math.min(base, parseFloat(amountInput.value) || 0);
+  slider.value = ((val / base) * 100).toFixed(0);
+  percentageText.textContent = `${slider.value}%`;
+});
+  async function claimRewards() {
+  if (!walletAddress) return alert("Connect your wallet first.");
   try {
-    if (!walletAddress) return alert("Connect wallet first.");
-    const tx = await tokenContract.faucet();
+    const tx = await contract.claimReward();
     const receipt = await tx.wait();
-    showTx(receipt.transactionHash);
-    updateUI();
-  } catch (e) {
-    alert("Faucet error: " + e.message);
+
+// TX hash UI
+const txBox = document.getElementById("txHashMsg");
+const txLink = document.getElementById("txLink");
+txLink.href = `https://chainscan-galileo.0g.ai/tx/${receipt.transactionHash}`;
+txBox.classList.remove("hidden");
+setTimeout(() => { txBox.classList.add("hidden"); }, 10000);
+
+    // Tambahkan delay 1 detik sebelum refresh UI
+    setTimeout(updateUI, 1000);
+  } catch (err) {
+    alert("Claim failed: " + err.message);
   }
 }
 
 async function depositRewards() {
-  const amount = prompt("Input reward amount (JWR):");
-  if (!amount || isNaN(amount) || amount <= 0) return;
-  const value = ethers.utils.parseEther(amount.toString());
-  const allowance = await tokenContract.allowance(walletAddress, multiStakingAddress);
-  if (allowance.lt(value)) {
-    const approveTx = await tokenContract.approve(multiStakingAddress, value);
-    await approveTx.wait();
+  const admin = "0x408e68F9dce5A0cd175Cd7C7EefB634D5f03A257";
+  if (!walletAddress) {
+    alert("Please connect your wallet.");
+    return;
   }
-  const tx = await multiContract.depositReward(erc20Address, value);
-  const receipt = await tx.wait();
-  showTx(receipt.transactionHash);
-  updateUI();
-}
 
-async function updateUI() {
-  if (!walletAddress) return;
+  if (walletAddress.toLowerCase() !== admin.toLowerCase()) {
+    alert("Only admin can deposit rewards.");
+    return;
+  }
+
+  const input = "10"; // hardcoded
+
   try {
-    const tokenBal = await tokenContract.balanceOf(walletAddress);
-    balance = parseFloat(ethers.utils.formatEther(tokenBal));
-    document.getElementById("walletBalance").textContent = `Balance: ${balance.toFixed(2)} JWR`;
-
-    const reward = await multiContract.pendingReward(erc20Address, walletAddress);
-    document.getElementById("pendingRewards").textContent = parseFloat(ethers.utils.formatEther(reward)).toFixed(4) + " JWR";
-
-    let staked = "-";
-    if (multiContract.getStakedAmount) {
-      const _staked = await multiContract.getStakedAmount(erc20Address, walletAddress);
-      staked = parseFloat(ethers.utils.formatEther(_staked)).toFixed(2) + " JWR";
-    }
-    document.getElementById("totalStaked").textContent = staked;
-
-    const poolBal = await tokenContract.balanceOf(multiStakingAddress);
-    document.getElementById("poolBalance").textContent = parseFloat(ethers.utils.formatEther(poolBal)).toFixed(2);
-    document.getElementById("apyValue").textContent = "20";
-  } catch(e) {
-    // Ignore update fail (maybe contract not ready)
+    const value = ethers.utils.parseEther(input);
+    const tx = await contract.depositReward({ value });
+    await tx.wait();
+    alert("Reward deposited successfully!");
+    updateUI();
+  } catch (err) {
+    console.error(err);
+    alert("Deposit failed: " + (err.data?.message || err.message));
   }
 }
+	setInterval(async () => {
+  if (walletAddress && contract) {
+    try {
+      const reward = await contract.pendingReward(walletAddress);
+      document.getElementById("pendingRewards").textContent = parseFloat(ethers.utils.formatEther(reward)).toFixed(4) + " 0G";
+    } catch (err) {
+      console.error("Failed to update reward:", err);
+    }
+  }
+}, 3000); // update setiap 3 detik
+	let actionsVisible = true;
 
-function showTx(hash) {
-  const txBox = document.getElementById("txHashMsg");
-  const txLink = document.getElementById("txLink");
-  txLink.href = `https://chainscan-galileo.0g.ai/tx/${hash}`;
-  txBox.classList.remove("hidden");
-  setTimeout(() => { txBox.classList.add("hidden"); }, 10000);
-}
-
-// Toggle & enable all action buttons
 function toggleActions() {
   const box = document.getElementById("actionButtons");
-  box.classList.toggle("hidden");
+
+  if (actionsVisible) {
+    box.style.transform = "scaleY(0)";
+    box.style.height = "0";
+    box.style.opacity = "0";
+    box.style.overflow = "hidden";
+  } else {
+    box.style.transform = "scaleY(1)";
+    box.style.height = "auto";
+    box.style.opacity = "1";
+    box.style.overflow = "visible";
+  }
+
+  actionsVisible = !actionsVisible;
 }
-
-// Slider + input sinkron
-window.onload = () => {
-  document.getElementById("connectBtn").addEventListener("click", connectWallet);
-  if (document.getElementById("slider")) {
-    const slider = document.getElementById("slider");
-    const amountInput = document.getElementById("amount");
-    const percentageText = document.getElementById("percentageText");
-    slider.addEventListener("input", () => {
-      const base = mode === "stake" ? balance : totalStaked;
-      const val = (parseFloat(slider.value) / 100) * base;
-      amountInput.value = val.toFixed(2);
-      percentageText.textContent = `${slider.value}%`;
-    });
-    amountInput.addEventListener("input", () => {
-      const base = mode === "stake" ? balance : totalStaked;
-      const val = Math.min(base, parseFloat(amountInput.value) || 0);
-      slider.value = ((val / base) * 100).toFixed(0);
-      percentageText.textContent = `${slider.value}%`;
-    });
-  }
-};
-
-// Auto update reward tiap 3 detik
-setInterval(async () => {
-  if (walletAddress && multiContract) {
-    try {
-      const reward = await multiContract.pendingReward(erc20Address, walletAddress);
-      document.getElementById("pendingRewards").textContent = parseFloat(ethers.utils.formatEther(reward)).toFixed(4) + " JWR";
-    } catch (err) {}
-  }
-}, 3000);
-
 </script>
+	<div id="txHashMsg" class="fixed bottom-4 right-4 bg-white shadow-md text-blue-600 text-xs px-3 py-2 rounded hidden z-50">
+  <a id="txLink" href="#" target="_blank">View Transaction</a>
+	</div>
 </body>
 </html>

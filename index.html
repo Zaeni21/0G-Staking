@@ -76,30 +76,516 @@
     <a id="txLink" href="#" target="_blank">View Transaction</a>
   </div>
 
-<script>
+  <script>
 let provider, signer, walletAddress, multiContract, tokenContract;
 let balance = 0, totalStaked = 0, mode = "stake";
 
-const multiStakingAddress = "0x3E28B27B8faA9BfffbAE49A19fcdBe43e3D3cd39"; // Contract staking JWR
+const multiStakingAddress = "0x3E28B27B8faA9BfffbAE49A19fcdBe43e3D3cd39"; // Ganti jika perlu
 const multiStakingAbi = [
-  "function stake(address token, uint256 amount) public",
-  "function unstake(address token, uint256 amount) public",
-  "function claimReward(address token) public",
-  "function pendingReward(address token, address user) public view returns (uint256)",
-  "function depositReward(address token, uint256 amount) external"
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "account",
+				"type": "address"
+			}
+		],
+		"name": "balanceOf",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "transfer",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "transferFrom",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
 ];
 const erc20Address = "0x4e54b5aeb805d826a6c1ad8abc9cbf05e49457c3";
 const erc20Abi = [
-  "function faucet() public",
-  "function approve(address spender, uint256 amount) public returns (bool)",
-  "function allowance(address owner, address spender) public view returns (uint256)",
-  "function balanceOf(address owner) public view returns (uint256)"
+	{
+		"inputs": [],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Approval",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "user",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "FaucetClaimed",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "value",
+				"type": "uint256"
+			}
+		],
+		"name": "Transfer",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "allowance",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "approve",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "balanceOf",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "decimals",
+		"outputs": [
+			{
+				"internalType": "uint8",
+				"name": "",
+				"type": "uint8"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "subtractedValue",
+				"type": "uint256"
+			}
+		],
+		"name": "decreaseAllowance",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "faucet",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "faucetAmount",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "faucetCooldown",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "spender",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "addedValue",
+				"type": "uint256"
+			}
+		],
+		"name": "increaseAllowance",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"name": "lastFaucetTime",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "name",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_amount",
+				"type": "uint256"
+			}
+		],
+		"name": "setFaucetAmount",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_cooldown",
+				"type": "uint256"
+			}
+		],
+		"name": "setFaucetCooldown",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "symbol",
+		"outputs": [
+			{
+				"internalType": "string",
+				"name": "",
+				"type": "string"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "totalSupply",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "transfer",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "transferFrom",
+		"outputs": [
+			{
+				"internalType": "bool",
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
 ];
 
 async function connectWallet() {
   if (!window.ethereum) return alert("Please install MetaMask or OKX Wallet");
   provider = new ethers.providers.Web3Provider(window.ethereum);
-  // ADD CHAIN jika belum ada
   await provider.send("wallet_addEthereumChain", [{
     chainId: '0x40d9',
     chainName: '0G-Galileo-Testnet',
@@ -147,91 +633,115 @@ async function confirmAction() {
     await approveTx.wait();
   }
 
-  const tx = mode === "stake"
-    ? await multiContract.stake(erc20Address, value)
-    : await multiContract.unstake(erc20Address, value);
+  let tx;
+  if (mode === "stake") {
+    tx = await multiContract.stake(erc20Address, value);
+  } else {
+    tx = await multiContract.unstake(erc20Address, value);
+  }
 
   const receipt = await tx.wait();
-  const txBox = document.getElementById("txHashMsg");
-  const txLink = document.getElementById("txLink");
-  txLink.href = `https://chainscan-galileo.0g.ai/tx/${receipt.transactionHash}`;
-  txBox.classList.remove("hidden");
-  setTimeout(() => { txBox.classList.add("hidden"); }, 10000);
+  showTx(receipt.transactionHash);
   updateUI();
 }
 
 async function claimRewards() {
-  const tx = await multiContract.claimReward(erc20Address);
-  const receipt = await tx.wait();
-  const txBox = document.getElementById("txHashMsg");
-  const txLink = document.getElementById("txLink");
-  txLink.href = `https://chainscan-galileo.0g.ai/tx/${receipt.transactionHash}`;
-  txBox.classList.remove("hidden");
-  setTimeout(() => { txBox.classList.add("hidden"); }, 10000);
-  updateUI();
+  try {
+    const tx = await multiContract.claimReward(erc20Address);
+    const receipt = await tx.wait();
+    showTx(receipt.transactionHash);
+    updateUI();
+  } catch (e) {
+    alert("Claim error: " + e.message);
+  }
 }
 
 async function getFaucet() {
-  if (!walletAddress) return alert("Connect wallet first.");
-  const tx = await tokenContract.faucet();
+  try {
+    if (!walletAddress) return alert("Connect wallet first.");
+    const tx = await tokenContract.faucet();
+    const receipt = await tx.wait();
+    showTx(receipt.transactionHash);
+    updateUI();
+  } catch (e) {
+    alert("Faucet error: " + e.message);
+  }
+}
+
+async function depositRewards() {
+  const amount = prompt("Input reward amount (JWR):");
+  if (!amount || isNaN(amount) || amount <= 0) return;
+  const value = ethers.utils.parseEther(amount.toString());
+  const allowance = await tokenContract.allowance(walletAddress, multiStakingAddress);
+  if (allowance.lt(value)) {
+    const approveTx = await tokenContract.approve(multiStakingAddress, value);
+    await approveTx.wait();
+  }
+  const tx = await multiContract.depositReward(erc20Address, value);
   const receipt = await tx.wait();
-  const txBox = document.getElementById("txHashMsg");
-  const txLink = document.getElementById("txLink");
-  txLink.href = `https://chainscan-galileo.0g.ai/tx/${receipt.transactionHash}`;
-  txBox.classList.remove("hidden");
-  setTimeout(() => { txBox.classList.add("hidden"); }, 10000);
+  showTx(receipt.transactionHash);
   updateUI();
 }
 
 async function updateUI() {
   if (!walletAddress) return;
-  const tokenBal = await tokenContract.balanceOf(walletAddress);
-  const reward = await multiContract.pendingReward(erc20Address, walletAddress);
-  const poolBal = await tokenContract.balanceOf(multiStakingAddress);
-  balance = parseFloat(ethers.utils.formatEther(tokenBal));
-  document.getElementById("walletBalance").textContent = `Balance: ${balance.toFixed(2)} JWR`;
-  document.getElementById("pendingRewards").textContent = parseFloat(ethers.utils.formatEther(reward)).toFixed(2) + " JWR";
-  document.getElementById("totalStaked").textContent = "-";
-  document.getElementById("apyValue").textContent = "20";
-  document.getElementById("poolBalance").textContent = parseFloat(ethers.utils.formatEther(poolBal)).toFixed(2);
+  try {
+    const tokenBal = await tokenContract.balanceOf(walletAddress);
+    balance = parseFloat(ethers.utils.formatEther(tokenBal));
+    document.getElementById("walletBalance").textContent = `Balance: ${balance.toFixed(2)} JWR`;
+
+    const reward = await multiContract.pendingReward(erc20Address, walletAddress);
+    document.getElementById("pendingRewards").textContent = parseFloat(ethers.utils.formatEther(reward)).toFixed(4) + " JWR";
+
+    let staked = "-";
+    if (multiContract.getStakedAmount) {
+      const _staked = await multiContract.getStakedAmount(erc20Address, walletAddress);
+      staked = parseFloat(ethers.utils.formatEther(_staked)).toFixed(2) + " JWR";
+    }
+    document.getElementById("totalStaked").textContent = staked;
+
+    const poolBal = await tokenContract.balanceOf(multiStakingAddress);
+    document.getElementById("poolBalance").textContent = parseFloat(ethers.utils.formatEther(poolBal)).toFixed(2);
+    document.getElementById("apyValue").textContent = "20";
+  } catch(e) {
+    // Ignore update fail (maybe contract not ready)
+  }
 }
 
-// Toggle untuk action panel
-let actionsVisible = true;
+function showTx(hash) {
+  const txBox = document.getElementById("txHashMsg");
+  const txLink = document.getElementById("txLink");
+  txLink.href = `https://chainscan-galileo.0g.ai/tx/${hash}`;
+  txBox.classList.remove("hidden");
+  setTimeout(() => { txBox.classList.add("hidden"); }, 10000);
+}
+
+// Toggle & enable all action buttons
 function toggleActions() {
   const box = document.getElementById("actionButtons");
-  if (actionsVisible) {
-    box.style.transform = "scaleY(0)";
-    box.style.height = "0";
-    box.style.opacity = "0";
-    box.style.overflow = "hidden";
-  } else {
-    box.style.transform = "scaleY(1)";
-    box.style.height = "auto";
-    box.style.opacity = "1";
-    box.style.overflow = "visible";
-  }
-  actionsVisible = !actionsVisible;
+  box.classList.toggle("hidden");
 }
 
 // Slider + input sinkron
 window.onload = () => {
   document.getElementById("connectBtn").addEventListener("click", connectWallet);
-  const slider = document.getElementById("slider");
-  const amountInput = document.getElementById("amount");
-  const percentageText = document.getElementById("percentageText");
-  slider.addEventListener("input", () => {
-    const base = mode === "stake" ? balance : totalStaked;
-    const val = (parseFloat(slider.value) / 100) * base;
-    amountInput.value = val.toFixed(2);
-    percentageText.textContent = `${slider.value}%`;
-  });
-  amountInput.addEventListener("input", () => {
-    const base = mode === "stake" ? balance : totalStaked;
-    const val = Math.min(base, parseFloat(amountInput.value) || 0);
-    slider.value = ((val / base) * 100).toFixed(0);
-    percentageText.textContent = `${slider.value}%`;
-  });
+  if (document.getElementById("slider")) {
+    const slider = document.getElementById("slider");
+    const amountInput = document.getElementById("amount");
+    const percentageText = document.getElementById("percentageText");
+    slider.addEventListener("input", () => {
+      const base = mode === "stake" ? balance : totalStaked;
+      const val = (parseFloat(slider.value) / 100) * base;
+      amountInput.value = val.toFixed(2);
+      percentageText.textContent = `${slider.value}%`;
+    });
+    amountInput.addEventListener("input", () => {
+      const base = mode === "stake" ? balance : totalStaked;
+      const val = Math.min(base, parseFloat(amountInput.value) || 0);
+      slider.value = ((val / base) * 100).toFixed(0);
+      percentageText.textContent = `${slider.value}%`;
+    });
+  }
 };
 
 // Auto update reward tiap 3 detik
@@ -240,9 +750,7 @@ setInterval(async () => {
     try {
       const reward = await multiContract.pendingReward(erc20Address, walletAddress);
       document.getElementById("pendingRewards").textContent = parseFloat(ethers.utils.formatEther(reward)).toFixed(4) + " JWR";
-    } catch (err) {
-      console.error("Failed to update reward:", err);
-    }
+    } catch (err) {}
   }
 }, 3000);
 

@@ -58,17 +58,14 @@
 
   <button onclick="confirmAction()" class="w-full bg-blue-600 text-white py-2 rounded">Confirm</button>
 
-  <div id="actionButtons" class="grid grid-cols-2 gap-4 mt-4 transition-all duration-300 origin-top">
-    <button onclick="claimRewards()" class="bg-gray-200 text-gray-800 text-sm py-1.5 rounded">Claim</button>
+  <div id="actionButtons" class="grid grid-cols-2 gap-4 mt-4 transition-all duration-300 origin-top hidden">
+	  <button onclick="claimRewards()" class="bg-gray-200 text-gray-800 text-sm py-1.5 rounded">Claim</button>
     <button onclick="depositRewards()" class="bg-gray-200 text-gray-800 text-sm py-1.5 rounded">Deposit</button>
+	  <button onclick="getFaucet()" class="text-sm text-blue-600 hover:underline">Get JWR</button>  
   </div>
 
   <div class="text-center mt-2">
     <button onclick="toggleActions()" class="text-sm text-gray-500 hover:text-black">Toggle Actions</button>
-  </div>
-
-  <div class="text-center mt-2">
-    <button onclick="getFaucet()" class="text-sm text-blue-600 hover:underline">Get JWR from Faucet</button>
   </div>
 </div>
 
@@ -262,8 +259,13 @@ function setMode(selected) {
 
 window.onload = () => {
   document.getElementById("connectBtn").addEventListener("click", connectWallet);
+document.getElementById("tokenSelector").addEventListener("change", updateUI);	
 };
-
+	function toggleActions() {
+  const actions = document.getElementById("actionButtons");
+  actions.classList.toggle("hidden");
+	}
+	
   </script>
 </body>
 </html>

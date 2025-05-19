@@ -379,8 +379,7 @@ tokenContract = new ethers.Contract(erc20Address, erc20Abi, signer);
       document.getElementById("amount").value = totalStaked.toFixed(2);
     }
   }
-
-  async function confirmAction() {
+	
   async function confirmAction() {
   const amount = parseFloat(document.getElementById("amount").value);
   const selectedToken = document.getElementById("tokenSelector").value;
